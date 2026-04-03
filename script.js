@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         html5QrCode.start(
-            { facingMode: "user" }, 
+            { facingMode: "environment" }, 
             config, 
             qrCodeSuccessCallback
         ).catch((err) => {
