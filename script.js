@@ -98,14 +98,25 @@ document.addEventListener('DOMContentLoaded', () => {
             aspectRatio: 1.333334 
         };
 
+        // Versuche die Rückkamera explizit über Constraints zu erzwingen
+        const cameraConstraints = { facingMode: { ideal: "environment" } };
+
         html5QrCode.start(
-            { facingMode: "environment" }, 
+            cameraConstraints, 
             config, 
             qrCodeSuccessCallback
         ).catch((err) => {
-            console.error("Scanner konnte nicht gestartet werden:", err);
-            fallbackToEnvironmentCamera(config, qrCodeSuccessCallback);
+            console.error("Fehler beim Starten mit ideal:environment:", err);
+            // Fallback auf die einfache Variante
+            html5QrCode.start(
+                { facingMode: "environment" }, 
+                config, 
+                qrCodeSuccessCallback
+            ).catch((err2) => {
+                showFeedback("Kamera konnte nicht gestartet werden.", "error");
+            });
         });
+        console.log("Kamera-Start mit 'environment' angefordert.");
     };
 
     const fallbackToEnvironmentCamera = (config, callback) => {
