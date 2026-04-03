@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     /**
-     * Scanner Initialisierung - Robuste Methode über Kamera-Enumeration
+     * Scanner Initialisierung - Zurück zur funktionierenden Frontkamera
      */
     const initScanner = () => {
         html5QrCode = new Html5Qrcode("reader");
@@ -98,41 +98,21 @@ document.addEventListener('DOMContentLoaded', () => {
             aspectRatio: 1.333334 
         };
 
-        // Kameras abfragen für präzise Auswahl auf Mobilgeräten
-        Html5Qrcode.getCameras().then(devices => {
-            if (devices && devices.length > 0) {
-                // Suche nach Rückkamera in den Labels
-                let backCamera = devices.find(device => {
-                    const label = device.label.toLowerCase();
-                    return label.includes('back') || label.includes('rear') || label.includes('rück');
-                });
-
-                // Falls keine Rückkamera benannt wurde, nimm die letzte (oft Back-Cam bei Handys)
-                const cameraId = backCamera ? backCamera.id : devices[devices.length - 1].id;
-
-                html5QrCode.start(
-                    cameraId, 
-                    config, 
-                    qrCodeSuccessCallback
-                ).catch(err => {
-                    console.error("ID-Start fehlgeschlagen, versuche facingMode fallback", err);
-                    startWithFacingMode(config, qrCodeSuccessCallback);
-                });
-            } else {
-                startWithFacingMode(config, qrCodeSuccessCallback);
-            }
-        }).catch(() => {
-            startWithFacingMode(config, qrCodeSuccessCallback);
-        });
-    };
-
-    const startWithFacingMode = (config, callback) => {
+        // Kamera starten mit Fokus auf Frontkamera (user) wie in Meilenstein 1
         html5QrCode.start(
-            { facingMode: "environment" }, 
+            { facingMode: "user" }, 
             config, 
-            callback
+            qrCodeSuccessCallback
         ).catch((err) => {
-            showFeedback("Kamera konnte nicht gestartet werden.", "error");
+            console.error("Scanner konnte nicht gestartet werden:", err);
+            // Fallback auf die Umgebungskamera
+            html5QrCode.start(
+                { facingMode: "environment" }, 
+                config, 
+                qrCodeSuccessCallback
+            ).catch((err2) => {
+                showFeedback("Kamera-Fehler!", "error");
+            });
         });
     };
 
