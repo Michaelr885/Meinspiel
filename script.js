@@ -1,6 +1,6 @@
 /**
- * Tablet QR Scanner - Milestone 2
- * Erweiterte Logik für Boss-Kämpfe und Karten-Matching
+ * Tablet QR Scanner - Milestone 3
+ * Game Loop: Rundenbasiertes Kampfsystem, Spieler-HP und Boss-Angriffsmuster
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -13,9 +13,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Boss UI Elemente
     const bossNameDisplay = document.getElementById('boss-name');
-    const hpBarFill = document.getElementById('hp-bar');
-    const hpTextDisplay = document.getElementById('hp-text');
+    const bossHpBarFill = document.getElementById('boss-hp-bar');
+    const bossHpTextDisplay = document.getElementById('boss-hp-text');
     const bossImage = document.getElementById('boss-image');
+    
+    // Spieler UI Elemente
+    const playerHpBarFill = document.getElementById('player-hp-bar');
+    const playerHpTextDisplay = document.getElementById('player-hp-text');
+    const roundDisplay = document.getElementById('round-display');
+    const endTurnBtn = document.getElementById('end-turn-btn');
+
+    // Overlay Elemente
+    const gameOverScreen = document.getElementById('game-over-screen');
+    const gameOverTitle = document.getElementById('game-over-title');
+    const gameOverMessage = document.getElementById('game-over-message');
+    const retryBtn = document.getElementById('retry-btn');
     
     // Feedback Elemente
     const toast = document.getElementById('feedback-toast');
@@ -23,13 +35,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let html5QrCode;
     let database = null;
+    let isGameOver = false;
     let gameState = {
         bossHp: 0,
-        bossMaxHp: 0
+        bossMaxHp: 0,
+        playerHp: 30,
+        playerMaxHp: 30,
+        currentRound: 1
     };
 
     /**
-     * Datenbank laden
+     * Datenbank laden und Spiel initialisieren
      */
     const loadDatabase = async () => {
         try {
@@ -37,11 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
             database = await response.json();
             console.log("Datenbank erfolgreich geladen:", database);
             
-            // Spiel-Status initialisieren
-            gameState.bossHp = database.boss.hp;
-            gameState.bossMaxHp = database.boss.maxHp;
-            
-            updateBossUI();
+            resetGameState();
         } catch (err) {
             console.error("Fehler beim Laden der Datenbank:", err);
             showFeedback("Datenbank-Fehler!", "error");
@@ -49,23 +61,56 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     /**
-     * Boss UI aktualisieren
+     * Spiel-Status zurücksetzen
      */
-    const updateBossUI = () => {
+    const resetGameState = () => {
         if (!database) return;
 
+        isGameOver = false;
+        gameState.bossHp = database.boss.hp;
+        gameState.bossMaxHp = database.boss.maxHp;
+        gameState.playerHp = 30; // Startwert laut Anforderung
+        gameState.playerMaxHp = 30;
+        gameState.currentRound = 1;
+
+        gameOverScreen.classList.add('hidden');
+        scannerWrapper.style.display = 'flex';
+        resultContainer.classList.add('hidden');
+        
+        updateUI();
+    };
+
+    /**
+     * Gesamte UI aktualisieren
+     */
+    const updateUI = () => {
+        if (!database) return;
+
+        // Boss Update
         bossNameDisplay.textContent = database.boss.name;
         bossImage.src = database.boss.image;
-        
-        const hpPercent = (gameState.bossHp / gameState.bossMaxHp) * 100;
-        hpBarFill.style.width = `${Math.max(0, hpPercent)}%`;
-        hpTextDisplay.textContent = `${Math.max(0, gameState.bossHp)} / ${gameState.bossMaxHp}`;
+        const bossHpPercent = (gameState.bossHp / gameState.bossMaxHp) * 100;
+        bossHpBarFill.style.width = `${Math.max(0, bossHpPercent)}%`;
+        bossHpTextDisplay.textContent = `${Math.max(0, gameState.bossHp)} / ${gameState.bossMaxHp}`;
 
-        // Farbe des Balkens bei niedrigen HP anpassen
-        if (hpPercent < 30) {
-            hpBarFill.style.background = 'linear-gradient(90deg, #ef4444, #b91c1c)';
+        // Spieler Update
+        const playerHpPercent = (gameState.playerHp / gameState.playerMaxHp) * 100;
+        playerHpBarFill.style.width = `${Math.max(0, playerHpPercent)}%`;
+        playerHpTextDisplay.textContent = `${Math.max(0, gameState.playerHp)} / ${gameState.playerMaxHp}`;
+
+        // Runden Info
+        roundDisplay.textContent = `Runde ${gameState.currentRound}`;
+
+        // Farben/Warnungen
+        updateBarColors(bossHpBarFill, bossHpPercent);
+        updateBarColors(playerHpBarFill, playerHpPercent);
+    };
+
+    const updateBarColors = (bar, percent) => {
+        if (percent < 30) {
+            bar.style.filter = 'hue-rotate(-50deg) brightness(1.2)';
         } else {
-            hpBarFill.style.background = 'linear-gradient(90deg, #22c55e, #16a34a)';
+            bar.style.filter = 'none';
         }
     };
 
@@ -75,15 +120,40 @@ document.addEventListener('DOMContentLoaded', () => {
     const showFeedback = (message, type = 'success') => {
         toastMessage.textContent = message;
         toast.className = `toast ${type}`;
-        
-        // Timer für das Ausblenden
-        setTimeout(() => {
-            toast.classList.add('hidden');
-        }, 3000);
+        setTimeout(() => toast.classList.add('hidden'), 3000);
     };
 
     /**
-     * Scanner Initialisierung - Zurück zur funktionierenden Frontkamera
+     * Boss-Angriff ausführen (Runden-Ende)
+     */
+    const handleBossTurn = () => {
+        if (isGameOver) return;
+
+        const monster = database.boss;
+        const pattern = monster.angriffsmuster;
+        
+        // Schaden ermitteln (Modulus für Loop-Muster)
+        const patternIndex = (gameState.currentRound - 1) % pattern.length;
+        const damage = pattern[patternIndex];
+
+        // Spieler HP abziehen
+        gameState.playerHp -= damage;
+        
+        // Visuelles Feedback
+        playerHpBarFill.classList.add('hp-bar-flash');
+        setTimeout(() => playerHpBarFill.classList.remove('hp-bar-flash'), 400);
+        
+        showFeedback(`${monster.name} greift an: ${damage} Schaden!`, "error");
+
+        // Runde erhöhen
+        gameState.currentRound++;
+        
+        updateUI();
+        checkWinLoss();
+    };
+
+    /**
+     * Scanner Initialisierung
      */
     const initScanner = () => {
         html5QrCode = new Html5Qrcode("reader");
@@ -98,77 +168,98 @@ document.addEventListener('DOMContentLoaded', () => {
             aspectRatio: 1.333334 
         };
 
-        // Kamera starten mit Fokus auf Frontkamera (user) wie in Meilenstein 1
         html5QrCode.start(
             { facingMode: "user" }, 
             config, 
             qrCodeSuccessCallback
         ).catch((err) => {
-            console.error("Scanner konnte nicht gestartet werden:", err);
-            // Fallback auf die Umgebungskamera
-            html5QrCode.start(
-                { facingMode: "environment" }, 
-                config, 
-                qrCodeSuccessCallback
-            ).catch((err2) => {
-                showFeedback("Kamera-Fehler!", "error");
-            });
+            console.error("Scanner-Startfehler, versuche Fallback...", err);
+            html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback);
         });
     };
 
     /**
-     * Logik nach erfolgreichem Scan (Milestone 2 Erweiterung)
+     * Logik nach erfolgreichem Scan
      */
     const handleScanSuccess = (decodedText, decodedResult) => {
+        if (isGameOver) return;
+
         console.log(`Scan erfolgreich: ${decodedText}`);
-        
-        // Scanner pausieren
         html5QrCode.pause(true);
 
-        // Abgleich mit Datenbank
         const card = database.cards[decodedText];
 
         if (card) {
             applyCardEffect(card);
             scannedResultDisplay.textContent = `${card.name} (${card.type})`;
-            showFeedback(`${card.name} eingesetzt!`, "success");
         } else {
             scannedResultDisplay.textContent = decodedText;
-            showFeedback("Unbekannte Karte gescannt", "error");
+            showFeedback("Unbekannte Karte", "error");
         }
         
-        // UI Update
         scannerWrapper.style.display = 'none';
         resultContainer.classList.remove('hidden');
     };
 
     /**
-     * Kampf-Logik: Effekt einer Karte anwenden
+     * Effekt einer Karte anwenden
      */
     const applyCardEffect = (card) => {
         if (card.type === 'schaden') {
             gameState.bossHp -= card.wert;
             
-            // Visuelles Feedback: HP-Balken blinkt rot
-            hpBarFill.classList.add('hp-bar-flash');
-            setTimeout(() => hpBarFill.classList.remove('hp-bar-flash'), 400);
+            bossHpBarFill.classList.add('hp-bar-flash');
+            setTimeout(() => bossHpBarFill.classList.remove('hp-bar-flash'), 400);
             
             showFeedback(`${card.name} fügt ${card.wert} Schaden zu!`, "success");
         } else if (card.type === 'heilung') {
-            gameState.bossHp = Math.min(gameState.bossMaxHp, gameState.bossHp + card.wert);
-            showFeedback(`${card.name} heilt ${card.wert} HP!`, "success");
+            // Heilung geht nun auf den Spieler (max 30)
+            gameState.playerHp = Math.min(gameState.playerMaxHp, gameState.playerHp + card.wert);
+            showFeedback(`Heilung: +${card.wert} Leben für dich!`, "success");
         }
 
-        updateBossUI();
+        updateUI();
+        checkWinLoss();
+    };
 
+    /**
+     * Prüfung auf Sieg oder Niederlage
+     */
+    const checkWinLoss = () => {
         if (gameState.bossHp <= 0) {
-            showFeedback("GEWONNEN! Der Boss wurde besiegt!", "success");
+            endGame(true);
+        } else if (gameState.playerHp <= 0) {
+            endGame(false);
         }
     };
 
-    const resetScanner = () => {
+    /**
+     * Spiel beenden
+     */
+    const endGame = (won) => {
+        isGameOver = true;
+        
+        // Scanner dauerhaft stoppen
+        if (html5QrCode && html5QrCode.isScanning) {
+            html5QrCode.stop().catch(console.error);
+        }
+
+        gameOverTitle.textContent = won ? "SIEG!" : "NIEDERLAGE!";
+        gameOverTitle.style.color = won ? "var(--hp-color)" : "var(--damage-color)";
+        gameOverMessage.textContent = won 
+            ? "Du hast Mr. Puppet erfolgreich besiegt!" 
+            : "Du wurdest von Mr. Puppet überwältigt...";
+        
+        gameOverScreen.classList.remove('hidden');
+        scannerWrapper.style.display = 'none';
         resultContainer.classList.add('hidden');
-        scannerWrapper.style.display = 'block';
+    };
+
+    const resetScannerUI = () => {
+        if (isGameOver) return;
+
+        resultContainer.classList.add('hidden');
+        scannerWrapper.style.display = 'flex';
         scannedResultDisplay.textContent = '';
 
         if (html5QrCode) {
@@ -176,13 +267,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    scanNextBtn.addEventListener('click', () => {
-        resetScanner();
+    // Event Listener
+    scanNextBtn.addEventListener('click', resetScannerUI);
+    
+    endTurnBtn.addEventListener('click', () => {
+        handleBossTurn();
     });
 
-    // Starten der Anwendung:
-    // Wir starten die Kamera DIREKT, damit der Nutzer sofort ein Bild sieht.
-    // Die Datenbank wird parallel im Hintergrund geladen.
+    retryBtn.addEventListener('click', () => {
+        resetGameState();
+        initScanner(); // Scanner neu starten
+    });
+
+    // Start
     initScanner();
     loadDatabase();
 });

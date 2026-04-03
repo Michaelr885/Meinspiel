@@ -14,21 +14,49 @@
             <h1>Meinspiel - Boss Kampf</h1>
         </header>
 
-        <section id="boss-container" class="card-glass">
+        <section id="boss-container" class="card-glass boss-theme">
             <div class="boss-image-wrapper">
                 <img id="boss-image" src="boss_puppet.svg" alt="Boss">
             </div>
             <div class="boss-stats">
                 <h2 id="boss-name">Lade Boss...</h2>
                 <div class="hp-container">
-                    <div id="hp-bar" class="hp-bar-fill" style="width: 100%;"></div>
-                    <span id="hp-text">20 / 20</span>
+                    <div id="boss-hp-bar" class="hp-bar-fill" style="width: 100%;"></div>
+                    <span id="boss-hp-text">20 / 20</span>
+                </div>
+            </div>
+        </section>
+
+        <section id="player-container" class="card-glass player-theme">
+            <div class="player-image-wrapper">
+                <div class="player-icon">🛡️</div>
+            </div>
+            <div class="player-stats">
+                <h2>Spieler</h2>
+                <div class="hp-container">
+                    <div id="player-hp-bar" class="hp-bar-fill player-hp" style="width: 100%;"></div>
+                    <span id="player-hp-text">30 / 30</span>
                 </div>
             </div>
         </section>
 
         <div id="feedback-toast" class="toast hidden">
             <p id="toast-message"></p>
+        </div>
+
+        <section id="turn-info" class="card-glass">
+            <div class="turn-stats">
+                <span id="round-display">Runde 1</span>
+                <button id="end-turn-btn" class="accent-btn">Runde beenden / Boss greift an</button>
+            </div>
+        </section>
+
+        <div id="game-over-screen" class="overlay hidden">
+            <div class="overlay-content">
+                <h1 id="game-over-title">Sieg!</h1>
+                <p id="game-over-message">Du hast den Boss besiegt.</p>
+                <button id="retry-btn" class="primary-btn">Erneut versuchen</button>
+            </div>
         </div>
 
         <main>

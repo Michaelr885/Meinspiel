@@ -3,7 +3,8 @@
     "name": "Mr. Puppet",
     "maxHp": 20,
     "hp": 20,
-    "image": "boss_puppet.svg"
+    "image": "boss_puppet.svg",
+    "angriffsmuster": [2, 4, 3, 2, 6]
   },
   "cards": {
     "qr_holzschwert": {
