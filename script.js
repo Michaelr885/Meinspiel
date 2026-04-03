@@ -180,8 +180,9 @@ document.addEventListener('DOMContentLoaded', () => {
         resetScanner();
     });
 
-    // Starten der Anwendung: Erst Datenbank laden, dann Scanner init
-    loadDatabase().then(() => {
-        initScanner();
-    });
+    // Starten der Anwendung:
+    // Wir starten die Kamera DIREKT, damit der Nutzer sofort ein Bild sieht.
+    // Die Datenbank wird parallel im Hintergrund geladen.
+    initScanner();
+    loadDatabase();
 });

@@ -172,14 +172,24 @@ main {
 #scanner-wrapper {
     width: 100%;
     max-width: 640px;
-    aspect-ratio: 4 / 3;
-    background: var(--card-bg);
+    min-height: 350px; /* Sicherstellung der Sichtbarkeit auf Handys */
+    background: #000;
     border: 2px solid var(--border-color);
     border-radius: 20px;
     overflow: hidden;
     box-shadow: var(--accent-glow);
     position: relative;
     backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.camera-placeholder {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 1rem;
+    text-align: center;
+    padding: 2rem;
 }
 
 #reader {
