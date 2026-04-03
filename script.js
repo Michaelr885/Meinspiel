@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     /**
-     * Scanner Initialisierung
+     * Scanner Initialisierung - Robuste Methode über Kamera-Enumeration
      */
     const initScanner = () => {
         html5QrCode = new Html5Qrcode("reader");
@@ -98,34 +98,41 @@ document.addEventListener('DOMContentLoaded', () => {
             aspectRatio: 1.333334 
         };
 
-        // Versuche die Rückkamera explizit über Constraints zu erzwingen
-        const cameraConstraints = { facingMode: { ideal: "environment" } };
+        // Kameras abfragen für präzise Auswahl auf Mobilgeräten
+        Html5Qrcode.getCameras().then(devices => {
+            if (devices && devices.length > 0) {
+                // Suche nach Rückkamera in den Labels
+                let backCamera = devices.find(device => {
+                    const label = device.label.toLowerCase();
+                    return label.includes('back') || label.includes('rear') || label.includes('rück');
+                });
 
-        html5QrCode.start(
-            cameraConstraints, 
-            config, 
-            qrCodeSuccessCallback
-        ).catch((err) => {
-            console.error("Fehler beim Starten mit ideal:environment:", err);
-            // Fallback auf die einfache Variante
-            html5QrCode.start(
-                { facingMode: "environment" }, 
-                config, 
-                qrCodeSuccessCallback
-            ).catch((err2) => {
-                showFeedback("Kamera konnte nicht gestartet werden.", "error");
-            });
+                // Falls keine Rückkamera benannt wurde, nimm die letzte (oft Back-Cam bei Handys)
+                const cameraId = backCamera ? backCamera.id : devices[devices.length - 1].id;
+
+                html5QrCode.start(
+                    cameraId, 
+                    config, 
+                    qrCodeSuccessCallback
+                ).catch(err => {
+                    console.error("ID-Start fehlgeschlagen, versuche facingMode fallback", err);
+                    startWithFacingMode(config, qrCodeSuccessCallback);
+                });
+            } else {
+                startWithFacingMode(config, qrCodeSuccessCallback);
+            }
+        }).catch(() => {
+            startWithFacingMode(config, qrCodeSuccessCallback);
         });
-        console.log("Kamera-Start mit 'environment' angefordert.");
     };
 
-    const fallbackToEnvironmentCamera = (config, callback) => {
+    const startWithFacingMode = (config, callback) => {
         html5QrCode.start(
             { facingMode: "environment" }, 
             config, 
             callback
         ).catch((err) => {
-            showFeedback("Kamera-Fehler!", "error");
+            showFeedback("Kamera konnte nicht gestartet werden.", "error");
         });
     };
 
