@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Meinspiel - Tablet QR Scanner</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- html5-qrcode Library von CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>QR-Scanner Meilenstein</h1>
+        </header>
+
+        <main>
+            <div id="scanner-wrapper">
+                <div id="reader"></div>
+            </div>
+
+            <div id="result-container" class="hidden">
+                <p class="label">Gescannte ID:</p>
+                <div id="scanned-result"></div>
+                <button id="scan-next-btn" class="primary-btn">Nächste Karte scannen</button>
+            </div>
+        </main>
+
+        <footer>
+            <p>Optimiert für Tablet-Nutzung</p>
+        </footer>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

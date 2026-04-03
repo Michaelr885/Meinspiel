@@ -1,0 +1,170 @@
+:root {
+    --primary-color: #00d2ff;
+    --primary-gradient: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+    --bg-color: #0f172a;
+    --card-bg: rgba(30, 41, 59, 0.7);
+    --text-color: #f8fafc;
+    --border-color: rgba(255, 255, 255, 0.1);
+    --accent-glow: 0 0 20px rgba(0, 210, 255, 0.3);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.app-container {
+    width: 100%;
+    max-width: 900px;
+    height: 100%;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+header {
+    text-align: center;
+}
+
+header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.5rem;
+}
+
+main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+}
+
+#scanner-wrapper {
+    width: 100%;
+    max-width: 640px;
+    aspect-ratio: 4 / 3;
+    background: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: var(--accent-glow);
+    position: relative;
+    backdrop-filter: blur(10px);
+}
+
+#reader {
+    width: 100% !important;
+    border: none !important;
+}
+
+#reader video {
+    object-fit: cover !important;
+}
+
+/* Anpassung für html5-qrcode interne Elemente */
+#reader__scan_region {
+    background: transparent !important;
+}
+
+#reader img {
+    display: none !important;
+}
+
+/* Ergebnis-Anzeige */
+#result-container {
+    width: 100%;
+    max-width: 600px;
+    background: var(--card-bg);
+    padding: 2rem;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    text-align: center;
+    transition: all 0.3s ease;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+#result-container.hidden {
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
+    position: absolute;
+}
+
+.label {
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 0.5rem;
+}
+
+#scanned-result {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--primary-color);
+    word-break: break-all;
+    margin-bottom: 2rem;
+}
+
+.primary-btn {
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    padding: 1.5rem 3rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    width: 100%;
+}
+
+.primary-btn:active {
+    transform: scale(0.98);
+}
+
+footer {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.9rem;
+}
+
+@media (orientation: landscape) {
+    .app-container {
+        flex-direction: row;
+        align-items: stretch;
+    }
+    
+    header {
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    main {
+        flex-direction: row;
+        width: 100%;
+    }
+}
