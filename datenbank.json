@@ -1,0 +1,25 @@
+{
+  "boss": {
+    "name": "Mr. Puppet",
+    "maxHp": 20,
+    "hp": 20,
+    "image": "boss_puppet.svg"
+  },
+  "cards": {
+    "qr_holzschwert": {
+      "name": "Holzschwert",
+      "type": "schaden",
+      "wert": 3
+    },
+    "qr_eisenschwert": {
+      "name": "Eisenschwert",
+      "type": "schaden",
+      "wert": 6
+    },
+    "qr_heiltrank": {
+      "name": "Heiltrank",
+      "type": "heilung",
+      "wert": 5
+    }
+  }
+}

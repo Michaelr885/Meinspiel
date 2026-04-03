@@ -11,8 +11,25 @@
 <body>
     <div class="app-container">
         <header>
-            <h1>QR-Scanner Meilenstein</h1>
+            <h1>Meinspiel - Boss Kampf</h1>
         </header>
+
+        <section id="boss-container" class="card-glass">
+            <div class="boss-image-wrapper">
+                <img id="boss-image" src="boss_puppet.svg" alt="Boss">
+            </div>
+            <div class="boss-stats">
+                <h2 id="boss-name">Lade Boss...</h2>
+                <div class="hp-container">
+                    <div id="hp-bar" class="hp-bar-fill" style="width: 100%;"></div>
+                    <span id="hp-text">20 / 20</span>
+                </div>
+            </div>
+        </section>
+
+        <div id="feedback-toast" class="toast hidden">
+            <p id="toast-message"></p>
+        </div>
 
         <main>
             <div id="scanner-wrapper">
